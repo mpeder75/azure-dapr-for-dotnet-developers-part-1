@@ -11,14 +11,15 @@ builder.Services.AddPetDb(builder.Configuration);
 builder.Services.AddScoped<IPetRepository, PetRepository>();
 builder.Services.AddScoped<PetApplicationService>();
 builder.Services.AddScoped<IBreedService, FakeBreedService>();
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+// Add services to the container.
+builder.Services.AddControllers().AddDapr();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

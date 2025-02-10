@@ -1,4 +1,5 @@
-﻿using WisdomPetMedicine.Pet.Api.Commands;
+﻿using Dapr.Client;
+using WisdomPetMedicine.Pet.Api.Commands;
 using WisdomPetMedicine.Pet.Api.IntegrationEvents;
 using WisdomPetMedicine.Pet.Domain.Events;
 using WisdomPetMedicine.Pet.Domain.Repositories;
@@ -9,12 +10,19 @@ namespace WisdomPetMedicine.Pet.Api.ApplicationServices;
 
 public class PetApplicationService
 {
-    private readonly IPetRepository petRepository;
     private readonly IBreedService breedService;
+    private readonly DaprClient daprClient;
     private readonly ILogger<PetApplicationService> logger;
+    private readonly IPetRepository petRepository;
+    private const string PubSubName = "pubsub";
+
+
     public PetApplicationService(IPetRepository petRepository,
-                                 IBreedService breedService,
-                                 ILogger<PetApplicationService> logger)
+        IBreedService breedService,
+        ILogger<PetApplicationService> logger,
+        DaprClient daprClient
+    )
+
     {
         this.petRepository = petRepository;
         this.breedService = breedService;
@@ -23,25 +31,25 @@ public class PetApplicationService
         DomainEvents.PetFlaggedForAdoption.Register(async c =>
         {
             var integrationEvent = new PetFlaggedForAdoptionIntegrationEvent(c.Id,
-                                                                             c.Name,
-                                                                             c.Breed,
-                                                                             c.Sex,
-                                                                             c.Color,
-                                                                             c.DateOfBirth,
-                                                                             c.Species);
-            
+                c.Name,
+                c.Breed,
+                c.Sex,
+                c.Color,
+                c.DateOfBirth,
+                c.Species);
+            await daprClient.PublishEventAsync(PubSubName,"pet-flagged-for-adoption", integrationEvent);
         });
 
         DomainEvents.PetTransferredToHospital.Register(async c =>
         {
             var integrationEvent = new PetTransferredToHospitalIntegrationEvent(c.Id,
-                                                                             c.Name,
-                                                                             c.Breed,
-                                                                             c.Sex,
-                                                                             c.Color,
-                                                                             c.DateOfBirth,
-                                                                             c.Species);
-            
+                c.Name,
+                c.Breed,
+                c.Sex,
+                c.Color,
+                c.DateOfBirth,
+                c.Species);
+            await daprClient.PublishEventAsync(PubSubName, "pet-transfer-to-hospital", integrationEvent);
         });
     }
 
