@@ -6,18 +6,15 @@ using WisdomPetMedicine.Rescue.Domain.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRescueDb(builder.Configuration);
 builder.Services.AddScoped<AdopterApplicationService>();
 builder.Services.AddScoped<IRescueRepository, RescueRepository>();
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -27,6 +24,12 @@ if (app.Environment.IsDevelopment())
 app.EnsureRescueDbIsCreated();
 app.UseHttpsRedirection();
 app.UseAuthorization();
+
+// Opsætter at vi vil bruge CloudEvents (Pubsub benytter dette)
+app.UseCloudEvents();
+// Handler for at kunne subscribe på CloudEvents
+app.MapSubscribeHandler();
+
 app.MapControllers();
 
 app.Run();
